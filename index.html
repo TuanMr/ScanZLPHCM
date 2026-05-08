@@ -6,7 +6,7 @@
 <meta name="viewport"
 content="width=device-width, initial-scale=1.0">
 
-<title>QR Scanner PRO</title>
+<title>QR & Barcode Scanner PRO</title>
 
 <script src="https://unpkg.com/html5-qrcode"></script>
 
@@ -34,7 +34,7 @@ h2{
 
 #reader{
     width:100%;
-    min-height:350px;
+    min-height:360px;
     background:black;
     border-radius:15px;
     overflow:hidden;
@@ -42,8 +42,8 @@ h2{
 
 #focus-box{
     position:absolute;
-    width:80px;
-    height:80px;
+    width:100px;
+    height:100px;
     border:3px solid yellow;
     border-radius:12px;
     display:none;
@@ -110,9 +110,15 @@ textarea{
 #status{
     margin-top:10px;
     text-align:center;
-    font-size:16px;
+    font-size:15px;
     font-weight:bold;
-    color:#333;
+}
+
+.info{
+    text-align:center;
+    margin-top:10px;
+    color:#666;
+    font-size:14px;
 }
 
 </style>
@@ -122,7 +128,7 @@ textarea{
 
 <div class="container">
 
-<h2>QR Scanner PRO</h2>
+<h2>SCAN QR ZALOPAY</h2>
 
 <div id="reader-wrapper">
 
@@ -138,7 +144,7 @@ Tổng scan:
 </div>
 
 <div id="warning">
-QR ĐÃ TỒN TẠI
+MÃ ĐÃ TỒN TẠI
 </div>
 
 <div id="status"></div>
@@ -166,18 +172,24 @@ Clear List
 <textarea id="resultList"
 placeholder="Danh sách mã scan..."></textarea>
 
+<div class="info">
+Tối ưu QR + Barcode + iPhone
+</div>
+
 </div>
 
 <script>
 
 const GOOGLE_SCRIPT_URL =
-"https://script.google.com/macros/s/AKfycbzStETLOoc2dfZhU33SWJ3DKO0YBfPBKq7WEJu5_YobczeDQGXkuFSJsbxFeBCJVzJY3A/exec";
+"https://script.google.com/macros/s/AKfycbzUBV7K_OnR9INzIxID3y4XlRURZNk8O59uL2NB-l-AUrmFK63Z9IjVxajFF8POP6isfQ/exec";
 
 let scannedList = [];
 
 let html5QrCode = null;
 
 let scannerRunning = false;
+
+let lastScanTime = 0;
 
 async function startScanner(){
 
@@ -188,46 +200,82 @@ async function startScanner(){
     try{
 
         html5QrCode =
-            new Html5Qrcode("reader");
+            new Html5Qrcode(
+                "reader"
+            );
 
         await html5QrCode.start(
 
             {
                 facingMode:{
-                    exact:"environment"
+                    ideal:"environment"
                 }
             },
 
             {
-                fps:20,
+                fps:30,
 
                 qrbox:function(w,h){
 
-                    let size =
-                        Math.floor(
-                            Math.min(w,h)*0.75
-                        );
-
                     return{
-                        width:size,
-                        height:size
+                        width:
+                            Math.floor(
+                                w * 0.9
+                            ),
+
+                        height:
+                            Math.floor(
+                                h * 0.32
+                            )
                     };
                 },
 
+                aspectRatio:1.777,
+
+                disableFlip:false,
+
+                formatsToSupport:[
+
+                    Html5QrcodeSupportedFormats.QR_CODE,
+
+                    Html5QrcodeSupportedFormats.CODE_128,
+
+                    Html5QrcodeSupportedFormats.CODE_39,
+
+                    Html5QrcodeSupportedFormats.EAN_13,
+
+                    Html5QrcodeSupportedFormats.EAN_8,
+
+                    Html5QrcodeSupportedFormats.UPC_A,
+
+                    Html5QrcodeSupportedFormats.UPC_E,
+
+                    Html5QrcodeSupportedFormats.ITF
+                ],
+
                 videoConstraints:{
+
                     facingMode:{
-                        exact:"environment"
+                        ideal:"environment"
                     },
 
-                    width:{ideal:1920},
-                    height:{ideal:1080},
+                    width:{
+                        ideal:1920
+                    },
+
+                    height:{
+                        ideal:1080
+                    },
 
                     advanced:[
+
                         {
-                            focusMode:"continuous"
+                            focusMode:
+                                "continuous"
                         },
+
                         {
-                            zoom:1.5
+                            zoom:2
                         }
                     ]
                 },
@@ -238,6 +286,17 @@ async function startScanner(){
             },
 
             async function(decodedText){
+
+                const now = Date.now();
+
+                if(
+                    now - lastScanTime
+                    < 1000
+                ){
+                    return;
+                }
+
+                lastScanTime = now;
 
                 if(
                     scannedList.includes(
@@ -283,6 +342,8 @@ async function startScanner(){
         setupTapFocus();
 
     }catch(err){
+
+        console.error(err);
 
         alert(
             "Lỗi camera:\n" + err
@@ -395,7 +456,7 @@ function showDuplicateWarning(){
 function flashEffect(){
 
     document.body.style.opacity =
-        "0.92";
+        "0.9";
 
     setTimeout(() => {
 
@@ -445,7 +506,7 @@ function setupTapFocus(){
                 focusBox.style.display =
                     "none";
 
-            }, 800);
+            }, 700);
 
             navigator.vibrate?.(30);
         }

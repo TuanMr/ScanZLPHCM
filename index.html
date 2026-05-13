@@ -2,7 +2,9 @@
 <html lang="vi">
 
 <head>
+
 <meta charset="UTF-8">
+
 <meta name="viewport"
 content="width=device-width, initial-scale=1.0">
 
@@ -26,6 +28,16 @@ body{
 
 h2{
     text-align:center;
+}
+
+input{
+    width:100%;
+    padding:14px;
+    margin-bottom:15px;
+    border-radius:12px;
+    border:1px solid #ccc;
+    box-sizing:border-box;
+    font-size:16px;
 }
 
 #reader-wrapper{
@@ -122,13 +134,19 @@ textarea{
 }
 
 </style>
+
 </head>
 
 <body>
 
 <div class="container">
 
-<h2>SCAN QR ZALOPAY</h2>
+<h2>QR & Barcode Scanner PRO</h2>
+
+<input
+type="text"
+id="saleInput"
+placeholder="Nhập Sale">
 
 <div id="reader-wrapper">
 
@@ -169,7 +187,8 @@ onclick="clearList()">
 Clear List
 </button>
 
-<textarea id="resultList"
+<textarea
+id="resultList"
 placeholder="Danh sách mã scan..."></textarea>
 
 <div class="info">
@@ -181,7 +200,7 @@ Tối ưu QR + Barcode + iPhone
 <script>
 
 const GOOGLE_SCRIPT_URL =
-"https://script.google.com/macros/s/AKfycbzUBV7K_OnR9INzIxID3y4XlRURZNk8O59uL2NB-l-AUrmFK63Z9IjVxajFF8POP6isfQ/exec";
+"https://script.google.com/macros/s/AKfycbyODGKsOtoPqS2YgxjRs2F72K9q8sMZ37-OlLx6RF45k1KDV9qKI5W1if6lozXDc-RWeg/exec";
 
 let scannedList = [];
 
@@ -192,6 +211,20 @@ let scannerRunning = false;
 let lastScanTime = 0;
 
 async function startScanner(){
+
+    const sale =
+        document.getElementById(
+            "saleInput"
+        ).value.trim();
+
+    if(!sale){
+
+        alert(
+            "Vui lòng nhập Sale"
+        );
+
+        return;
+    }
 
     if(scannerRunning){
         return;
@@ -285,9 +318,13 @@ async function startScanner(){
                 }
             },
 
-            async function(decodedText){
+            async function(
+                decodedText,
+                decodedResult
+            ){
 
-                const now = Date.now();
+                const now =
+                    Date.now();
 
                 if(
                     now - lastScanTime
@@ -331,8 +368,21 @@ async function startScanner(){
 
                 flashEffect();
 
+                let scanType =
+                    "BARCODE";
+
+                if(
+                    decodedResult.result
+                    .format
+                    .formatName
+                    === "QR_CODE"
+                ){
+                    scanType = "QR";
+                }
+
                 await autoSendToSheet(
-                    decodedText
+                    decodedText,
+                    scanType
                 );
             }
         );
@@ -351,9 +401,26 @@ async function startScanner(){
     }
 }
 
-async function autoSendToSheet(code){
+async function autoSendToSheet(
+    code,
+    type
+){
 
     try{
+
+        const sale =
+            document.getElementById(
+                "saleInput"
+            ).value.trim();
+
+        if(!sale){
+
+            setStatus(
+                "Chưa nhập Sale"
+            );
+
+            return;
+        }
 
         setStatus(
             "Đang gửi: " + code
@@ -361,8 +428,28 @@ async function autoSendToSheet(code){
 
         const url =
             GOOGLE_SCRIPT_URL +
-            "?code=" +
-            encodeURIComponent(code);
+
+            "?sale=" +
+
+            encodeURIComponent(
+                sale
+            )
+
+            +
+
+            "&code=" +
+
+            encodeURIComponent(
+                code
+            )
+
+            +
+
+            "&type=" +
+
+            encodeURIComponent(
+                type
+            );
 
         await fetch(
             url,

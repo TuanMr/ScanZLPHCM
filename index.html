@@ -8,7 +8,7 @@
 <meta name="viewport"
 content="width=device-width, initial-scale=1.0">
 
-<title>ZLP HCM</title>
+<title>SCAN QR ZLP HCM</title>
 
 <script src="https://unpkg.com/html5-qrcode"></script>
 
@@ -61,6 +61,30 @@ input{
     display:none;
     transform:translate(-50%,-50%);
     pointer-events:none;
+}
+
+/* Thông báo trùng lặp - hiển thị trên camera */
+#overlay-warning{
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%, -50%);
+    background:rgba(255, 0, 0, 0.9);
+    color:white;
+    padding:20px 30px;
+    border-radius:15px;
+    font-size:24px;
+    font-weight:bold;
+    display:none;
+    pointer-events:none;
+    z-index:100;
+    box-shadow:0 4px 15px rgba(0,0,0,0.5);
+    animation:pulse 0.5s ease-in-out;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); }
+    50% { transform: translate(-50%, -50%) scale(1.1); }
 }
 
 button{
@@ -141,7 +165,7 @@ textarea{
 
 <div class="container">
 
-<h2>ZLP HCM</h2>
+<h2>SCAN QR ZLP HCM</h2>
 
 <input
 type="text"
@@ -154,15 +178,14 @@ placeholder="Nhập Sale">
 
     <div id="focus-box"></div>
 
+    <!-- Thông báo trùng lặp hiển thị trên camera -->
+    <div id="overlay-warning">MÃ QR ĐÃ TỒN TẠI</div>
+
 </div>
 
 <div class="scan-count">
 Tổng scan:
 <span id="count">0</span>
-</div>
-
-<div id="warning">
-MÃ ĐÃ TỒN TẠI
 </div>
 
 <div id="status"></div>
@@ -189,10 +212,10 @@ Clear List
 
 <textarea
 id="resultList"
-placeholder="Danh sách mã scan..."></textarea>
+placeholder="DANH SÁCH MÃ QR ĐÃ SCAN"></textarea>
 
 <div class="info">
-Tối ưu QR + Barcode + iPhone
+Tạo bởi Nguyễn Mạnh Tuấn
 </div>
 
 </div>
@@ -220,7 +243,7 @@ async function startScanner(){
     if(!sale){
 
         alert(
-            "Vui lòng nhập Sale"
+            "BẠN CHƯA NHẬP TÊN SALE"
         );
 
         return;
@@ -275,6 +298,8 @@ async function startScanner(){
 
                     Html5QrcodeSupportedFormats.CODE_39,
 
+                    Html5QrcodeSupportedFormats.CODE_93,
+
                     Html5QrcodeSupportedFormats.EAN_13,
 
                     Html5QrcodeSupportedFormats.EAN_8,
@@ -283,7 +308,21 @@ async function startScanner(){
 
                     Html5QrcodeSupportedFormats.UPC_E,
 
-                    Html5QrcodeSupportedFormats.ITF
+                    Html5QrcodeSupportedFormats.ITF,
+
+                    Html5QrcodeSupportedFormats.MSI,
+
+                    Html5QrcodeSupportedFormats.CODABAR,
+
+                    Html5QrcodeSupportedFormats.GS1_DATABAR,
+
+                    Html5QrcodeSupportedFormats.GS1_DATABAR_EXPANDED,
+
+                    Html5QrcodeSupportedFormats.DATA_MATRIX,
+
+                    Html5QrcodeSupportedFormats.AZTEC,
+
+                    Html5QrcodeSupportedFormats.PDF_417
                 ],
 
                 videoConstraints:{
@@ -308,7 +347,7 @@ async function startScanner(){
                         },
 
                         {
-                            zoom:2
+                            zoom:1.5
                         }
                     ]
                 },
@@ -522,19 +561,20 @@ function setStatus(text){
     ).innerText = text;
 }
 
+// Cải thiện: Hiển thị thông báo trên camera
 function showDuplicateWarning(){
 
-    const warning =
+    const overlayWarning =
         document.getElementById(
-            "warning"
+            "overlay-warning"
         );
 
-    warning.style.display =
+    overlayWarning.style.display =
         "block";
 
     setTimeout(() => {
 
-        warning.style.display =
+        overlayWarning.style.display =
             "none";
 
     }, 1500);
